@@ -1,5 +1,8 @@
 <?php
 
+include "Card.php";
+include "Space.php";
+
 $file = fopen('input.txt', 'r');
 
 $numbers = fgetcsv($file, 0, ',');
@@ -35,119 +38,19 @@ $winningNumber = null;
 
 foreach ($numbers as $number) {
     /** @var Card $card */
-    foreach ($cards as $card) {
+    foreach ($cards as $index => $card) {
         $card->markSpaces((int)$number);
         if ($card->isWinning) {
+            unset($cards[$index]);
             $winningCard = $card;
         }
     }
 
-    if (!is_null($winningCard)) {
+    if (count($cards) === 0) {
         $winningNumber = $number;
         break;
     }
 }
 
-echo 'Part 1: ' . $winningCard->getUnmarkedSum() * $winningNumber;
 
-
-class Card
-{
-    public $spaces;
-    public $isWinning;
-
-    public function __construct() {}
-
-    /**
-     * @param Space[] $spaces
-     */
-    public function addSpaces(array$spaces): void
-    {
-        $this->spaces[] = $spaces;
-    }
-
-    public function markSpaces(int $num): void
-    {
-        $spaceMarked = false;
-        foreach ($this->spaces as $rows) {
-            /** @var Space $space */
-            foreach ($rows as $space) {
-                if ($space->value === $num) {
-                    $space->isMarked = true;
-                    $spaceMarked = true;
-                }
-            }
-        }
-
-        if ($spaceMarked && !$this->isWinning) {
-            $this->isWinning = $this->checkForWin();
-        }
-    }
-
-    private function checkForWin(): bool
-    {
-        $win = $this->checkRows();
-
-        if (!$win)  {
-            $win = $this->checkColumns();
-        }
-
-        return $win;
-    }
-
-    private function checkRows(): bool
-    {
-        foreach ($this->spaces as $row) {
-            if ($this->checkArrayForWin($row)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private function checkColumns(): bool
-    {
-        for ($i = 0; $i < 5; $i++) {
-            if ($this->checkArrayForWin(array_column($this->spaces, $i))) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private function checkArrayForWin(array $array): bool
-    {
-        /** @var Space $space */
-        foreach ($array as $space) {
-            if ($space->isMarked === false) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    public function getUnmarkedSum(): int
-    {
-        $sum = 0;
-        foreach ($this->spaces as $rows) {
-            /** @var Space $space */
-            foreach ($rows as $space) {
-                if (!$space->isMarked) {
-                    $sum += $space->value;
-                }
-            }
-        }
-        return $sum;
-    }
-}
-
-class Space
-{
-     public $value;
-     public $isMarked = false;
-
-     public function __construct(int $value)
-     {
-         $this->value = $value;
-     }
-}
+echo 'Part 2: ' . $winningCard->getUnmarkedSum() * $winningNumber;
